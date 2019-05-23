@@ -1,0 +1,51 @@
+
+resource_types:
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: gpdb6-centos6-build
+  type: docker-image
+  source:
+    repository: pivotaldata/gpdb6-centos6-build
+    tag: latest
+
+- name: gpdb_src
+  type: git
+  source:
+    branch: {{gpdb-git-branch}}
+    uri: {{gpdb-git-remote}}
+    ignore_paths:
+    - gpdb-doc/*
+    - README*
+
+- name: bin_gpdb_clients_windows_rc
+  type: gcs
+  source:
+    bucket: ((pivotal-gp-internal-artifacts-gcs-bucket))
+    json_key: ((concourse-gcs-resources-service-account-key))
+    regexp: clients/published/gpdb6/greenplum-clients-(.*)-x86_64.msi
+
+jobs:
+- name: compile_gpdb_windows_remote
+  serial: true
+  plan:
+  # Compile gpdb on a remote AIX machine, triggered by concourse.
+  # We need to serialize this job to avoid overwhelming workload
+  # on remote machine.
+  - aggregate:
+    - get: gpdb_src
+    - get: gpdb6-centos6-build
+  - task: compile_gpdb_windows_remote
+    file: gpdb_src/concourse/tasks/compile_gpdb_remote_windows.yml
+    image: gpdb6-centos6-build
+    params:
+      REMOTE_HOST: {{remote_host_build}}
+      REMOTE_PORT: {{remote_port_build}}
+      REMOTE_USER: {{remote_user_build}}
+      REMOTE_KEY: {{remote_key_build}}
+  - put: bin_gpdb_clients_windows_rc
+    params:
+      file: "gpdb_artifacts/greenplum-clients-*-x86_64.msi"
