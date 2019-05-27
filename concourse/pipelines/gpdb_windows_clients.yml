@@ -5,6 +5,11 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 
+- name: terraform
+  type: docker-image
+  source:
+    repository: ljfranklin/terraform-resource
+
 resources:
 - name: gpdb6-centos6-build
   type: docker-image
@@ -28,6 +33,32 @@ resources:
     json_key: ((concourse-gcs-resources-service-account-key))
     regexp: clients/published/gpdb6/greenplum-clients-(.*)-x86_64.msi
 
+- name: gpdb6-windows-powershell
+  type: docker-image
+  source:
+    repository: quickbreach/powershell-ntlm
+    tag: latest
+
+- name: terraform
+  type: terraform
+  source:
+    env:
+      AWS_ACCESS_KEY_ID: {{tf-machine-access-key-id}}
+      AWS_SECRET_ACCESS_KEY: {{tf-machine-secret-access-key}}
+      GOOGLE_CREDENTIALS: {{google-service-account-key}}
+    vars:
+      project: {{google-project-id}}
+      region: {{google-region}}
+      region_zone: {{google-region-zone}}
+    storage:
+      access_key_id: {{tf-machine-access-key-id}}
+      secret_access_key: {{tf-machine-secret-access-key}}
+      region_name: {{aws-region}}
+      # This is not parameterized, on purpose. All tfstates will go to this spot,
+      # and different teams will place there clusters' tfstate files under different paths
+      bucket: gpss-concourse
+      bucket_path: clusters-google/
+
 jobs:
 - name: compile_gpdb_windows_remote
   serial: true
@@ -49,3 +80,53 @@ jobs:
   - put: bin_gpdb_clients_windows_rc
     params:
       file: "gpdb_artifacts/greenplum-clients-*-x86_64.msi"
+
+- name: test_gpdb_windows_remote
+  plan:
+  - aggregate:
+    - get: gpdb_src
+      passed: [compile_gpdb_windows_remote]
+    - get: gpdb6-windows-powershell
+    - get: bin_gpdb_clients_windows_rc
+  - put: terraform
+    params:
+      action: create
+      delete_on_failure: true
+      generate_random_name: true
+      terraform_source: gpdb_src/concourse/terraform/
+  - task: show-outputs
+    config:
+      platform: linux
+      inputs:
+        - name: terraform
+      run:
+        path: /bin/sh
+        args:
+          - -c
+          - |
+              echo "name: $(cat terraform/name)"
+              echo "metadata: $(cat terraform/metadata)"
+              ls terraform
+  # - task: run_tests
+  #   file: gpss_src/concourse/tasks/bench.yml
+  #   image: gpdb6-windows-powershell
+  #   params:
+  #     LOGIN_IP: ((login-ip))
+  #     LOGIN_USER: ((login-user))
+  #     LOGIN_PASSWORD: ((windows-password))
+  #   on_success:
+  #     put: benchmark_result
+  #     resource: benchmark_result
+  #     params:
+  #       file: benchmark/result-*.tar.gz
+  ensure:
+    put: terraform
+    params:
+      action: destroy
+      env_name_file: terraform/name
+      terraform_source: gpdb_src/concourse/terraform/
+      vars:
+        aws_instance-node-instance_type: t2.micro #t2.micro is ignored in destroy, but aws_instance-node-instance_type is required.
+        aws_ebs_volume_type: standard
+    get_params:
+      action: destroy
