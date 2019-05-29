@@ -30,5 +30,5 @@ resource "google_compute_disk" "windows2012" {
   name  = "windows2012-boot-disk"
   type  = "pd-ssd"
   zone  = "${var.region_zone}"
-  snapshot = "windows2012-core-enable-winrm"
+  snapshot = "windows-test-ssh"
 }
