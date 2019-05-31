@@ -109,7 +109,6 @@ jobs:
     file: gpdb_src/concourse/tasks/windows_remote_test.yml
     image: gpdb6-centos7-test
     params:
-      REMOTE_HOST: {{remote_host_test}}
       REMOTE_PORT: {{remote_port_test}}
       REMOTE_USER: {{remote_user_test}}
       REMOTE_KEY: {{remote_key_test}}
