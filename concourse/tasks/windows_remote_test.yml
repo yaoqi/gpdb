@@ -3,10 +3,10 @@ inputs:
   - name: terraform
   - name: gpdb_src
   - name: bin_gpdb
+  - name: bin_gpdb_clients_windows_rc
 run:
   path: gpdb_src/concourse/scripts/windows_remote_test.bash
 params:
-  REMOTE_HOST:
   REMOTE_PORT:
   REMOTE_USER:
   REMOTE_KEY:

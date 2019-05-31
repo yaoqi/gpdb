@@ -4,8 +4,10 @@ provider "google" {
   zone    = "${var.region_zone}"
 }
 
+resource "random_uuid" "postfix" { }
+
 resource "google_compute_instance" "gpdb-clients" {
-  name                      = "gpdb-clients"
+  name                      = "gpdb-clients-${random_uuid.postfix.result}"
   allow_stopping_for_update = "true"
   machine_type              = "n1-standard-2"
 
