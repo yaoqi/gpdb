@@ -40,6 +40,15 @@ function run_remote_test() {
     run_clients_test
 }
 
+function create_cluster() {
+    export CONFIGURE_FLAGS="--enable-gpfdist --with-openssl"
+
+    time install_and_configure_gpdb
+    time setup_gpadmin_user
+    export WITH_MIRRORS=false
+    time make_cluster
+}
+
 function _main() {
     if [ -z "$REMOTE_PORT" ]; then
         REMOTE_PORT=22
@@ -47,10 +56,7 @@ function _main() {
     yum install -y jq
     export REMOTE_HOST=`jq -r '."gpdb-clients-ip"' terraform/metadata`
 
-    time install_and_configure_gpdb
-    time setup_gpadmin_user
-    export WITH_MIRRORS=false
-    time make_cluster
+    time create_cluster
     time import_remote_key
     time run_remote_test
 }
