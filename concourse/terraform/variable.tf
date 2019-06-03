@@ -10,3 +10,6 @@ variable "project" {
     default = "data-gpdb-unite-gpdb-clients"
 }
 
+variable "instance_name" {
+    
+}
