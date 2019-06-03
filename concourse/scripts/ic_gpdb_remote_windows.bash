@@ -1,5 +1,5 @@
 #!/bin/bash -l
-set -eo pipefail
+set -exo pipefail
 
 CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${CWDIR}/common.bash"
