@@ -4,8 +4,12 @@ provider "google" {
   zone    = "${var.region_zone}"
 }
 
+resource "random_id" "id" {
+  byte_length = 8
+}
+
 resource "google_compute_instance" "gpdb-clients" {
-  name                      = "${var.instance_name}"
+  name                      = "instance-${random_id.id.hex}"
   allow_stopping_for_update = "true"
   machine_type              = "n1-standard-2"
 
@@ -27,7 +31,7 @@ output "gpdb-clients-ip" {
 }
 
 resource "google_compute_disk" "windows2012" {
-  name  = "windows2012-boot-disk"
+  name  = "disk-${random_id.id.hex}"
   type  = "pd-ssd"
   zone  = "${var.region_zone}"
   snapshot = "windows-test-ssh"

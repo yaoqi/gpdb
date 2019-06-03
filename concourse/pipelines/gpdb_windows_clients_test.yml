@@ -76,8 +76,6 @@ jobs:
       action: create
       delete_on_failure: true
       generate_random_name: true
-      vars:
-        instance_name: $BUILD_ID
       terraform_source: gpdb_src/concourse/terraform/
   - task: run_tests
     file: gpdb_src/concourse/tasks/windows_remote_test.yml
