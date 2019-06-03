@@ -58,7 +58,7 @@ function _main() {
     export REMOTE_HOST=`jq -r '."gpdb-clients-ip"' terraform/metadata`
 
     time install_and_configure_gpdb
-    time setup_gpadmin_user.
+    time setup_gpadmin_user
     export WITH_MIRRORS=false
     time make_cluster
     time import_remote_key
