@@ -1,5 +1,4 @@
 #!/bin/bash -l
-
 set -eo pipefail
 
 CWDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -55,6 +54,7 @@ function _main() {
     if [ -z "$REMOTE_PORT" ]; then
         REMOTE_PORT=22
     fi
+    yum install -y jq
     export REMOTE_HOST=`jq -r '."gpdb-clients-ip"' terraform/metadata`
 
     time install_and_configure_gpdb
