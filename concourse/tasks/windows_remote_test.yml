@@ -5,12 +5,7 @@ inputs:
   - name: bin_gpdb
   - name: bin_gpdb_clients_windows_rc
 run:
-  path: "sh"
-  args:
-  - -c
-  - |
-    set -euxo pipefail
-    exit 1
+  path: gpdb_src/concourse/scripts/ic_gpdb_remote_windows.bash
 params:
   REMOTE_PORT:
   REMOTE_USER:

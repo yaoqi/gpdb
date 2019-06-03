@@ -34,5 +34,5 @@ resource "google_compute_disk" "windows2012" {
   name  = "disk-${random_id.id.hex}"
   type  = "pd-ssd"
   zone  = "${var.region_zone}"
-  snapshot = "windows-test-ssh"
+  snapshot = "gpdb-win-remote-test"
 }
