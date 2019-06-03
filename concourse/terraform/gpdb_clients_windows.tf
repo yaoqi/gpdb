@@ -5,7 +5,7 @@ provider "google" {
 }
 
 resource "google_compute_instance" "gpdb-clients" {
-  name                      = "gpdb-clients"
+  name                      = "${var.instance_name}"
   allow_stopping_for_update = "true"
   machine_type              = "n1-standard-2"
 
