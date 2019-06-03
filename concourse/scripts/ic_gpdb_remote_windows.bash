@@ -19,12 +19,10 @@ function import_remote_key() {
     eval `ssh-agent -s`
     ssh-add ~/remote.key
 
-    ssh-keyscan -p $REMOTE_PORT $REMOTE_HOST > pubkey
-    awk '{printf "[%s]:", $1 }' pubkey > tmp
-    echo -n $REMOTE_PORT >> tmp
-    awk '{$1 = ""; print $0; }' pubkey >> tmp
-
-    cat tmp >> ~/.ssh/known_hosts
+    # Scan for target server's public key, append port number
+    # maybe run with ssh -o StrictHostKeyChecking=no?
+    mkdir -p ~/.ssh
+    ssh-keyscan -p $REMOTE_PORT $REMOTE_HOST > ~/.ssh/known_hosts
 }
 
 function run_remote_test() {
@@ -57,10 +55,11 @@ function _main() {
     if [ -z "$REMOTE_PORT" ]; then
         REMOTE_PORT=22
     fi
+    export REMOTE_HOST=`jq -r '."gpdb-clients-ip"' terraform/metadata`
 
-    time configure
-    time install_gpdb
-    time setup_gpadmin_user
+    time install_and_configure_gpdb
+    time setup_gpadmin_user.
+    export WITH_MIRRORS=false
     time make_cluster
     time import_remote_key
     time run_remote_test
